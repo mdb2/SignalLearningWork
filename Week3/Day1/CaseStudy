@@ -1,0 +1,10 @@
+
+Any values where only one person has it as their high school is less likely to be real (and in general fewer people having something is less likely)
+
+The distribution of fake values by location is likely to be different than real. The high school value "skewl sux" is likely to be distributed more evenly across locations than an actual highschool which will either be ~0% in a location or something high depending on if the highschool actually exists. Can look at the standard deviation as a percentage of the mean.
+
+The amount of people of one gender should be about 0%, 50%, or 100% (for boys/girls schools and normal schools). Complicated ways to adjust, simple one is just 15-35, 65-85 percent is fake.
+
+Finally, if you're willing to find a handful of real and fake high school names, you can make all of the above features and do logistic regression to come up with a model. Otherwise, I'd take the above, give it a 1 if it meets the criterea, 0 otherwise, sum it up and if it was two high declare as fake.
+
+
