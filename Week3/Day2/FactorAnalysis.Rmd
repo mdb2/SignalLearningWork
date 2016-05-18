@@ -6,14 +6,35 @@ output: html_document
 ---
 
 ```{r setup}
+library(corrplot)
 set.seed(1)
 factors = data.frame(matrix(1:300, ncol = 3))
-(factors)
+factors[[1]] = rnorm(n = 100, 0, 1)
+factors[[2]] = rnorm(n = 100, 0, 1)
+factors[[3]] = rnorm(n = 100, 0, 1)
 colnames(factors) = c("X","Y","Z")
 
-noisyIndicators = function(){
-  
+noisyIndicators = function(feature, k, correlation){
+  x = scale(feature)
+  b = sqrt(1-(correlation^2))
+  returnDF = data.frame(matrix(NA, nrow = length(feature), ncol = k))
+  for(i in 1:k){
+    error = rnorm(length(x),0,b)
+    returnDF[[i]] = correlation*x+error
+    
+  }
+  return(returnDF)
 }
+# noisies = data.frame(XProx = unlist(noisyIndicators(factors$X,4,.9)), YProx= unlist(noisyIndicators(factors$Y,3,.9)))
+XProx = noisyIndicators(factors$X,4,.9)
+YProx = noisyIndicators(factors$Y,3,.9)
+
+noisies = cbind(XProx,YProx)
+
+corrplot(cor(noisies))
+
+pcaComps = prcomp(noisies,.scale = TRUE)
+corrplot(cor(noisies, pcaComps$x)) #really cool: PC1 is strongly correlated with X, PC2 with Y
 ```
 
 ## R Markdown
