@@ -1,0 +1,119 @@
+---
+title: "FactorAnalysis"
+author: "mdb2"
+date: "17 May 2016"
+output: html_document
+---
+
+```{r setup}
+library(corrplot)
+library(psych)
+set.seed(1)
+factors = data.frame(matrix(1:300, ncol = 3))
+factors[[1]] = rnorm(n = 100, 0, 1)
+factors[[2]] = rnorm(n = 100, 0, 1)
+factors[[3]] = rnorm(n = 100, 0, 1)
+colnames(factors) = c("X","Y","Z")
+
+noisyIndicators = function(feature, k, correlation){
+  x = scale(feature)
+  b = sqrt(1-(correlation^2))
+  returnDF = data.frame(matrix(NA, nrow = length(feature), ncol = k))
+  for(i in 1:k){
+    error = rnorm(length(x),0,b)
+    returnDF[[i]] = correlation*x+error
+    
+  }
+  return(returnDF)
+}
+# noisies = data.frame(XProx = unlist(noisyIndicators(factors$X,4,.9)), YProx= unlist(noisyIndicators(factors$Y,3,.9)))
+XProx = noisyIndicators(factors$X,4,.9)
+YProx = noisyIndicators(factors$Y,3,.9)
+
+noisies = cbind(XProx,YProx)
+
+corrplot(cor(noisies))
+
+pcaComps = prcomp(noisies,.scale = TRUE)
+corrplot(cor(noisies, pcaComps$x)) #really cool: PC1 is strongly correlated with X, PC2 with Y
+
+faComps = fa(r = noisies, nfactors = 2, rotate = "varimax")
+corrplot(cor(noisies, faComps$scores))#even stronger!
+
+###Part 2:
+vars = vector("list", 50)
+for(i in 1:50){
+vars[[i]] = factors$X * runif (1) + factors$Y * runif (2) + factors$Z * runif (3) + 0.5 * rnorm(n = 1, mean = 0, sd = 1)
+}
+vars = data.frame(vars)
+pcaComps= prcomp(vars, scale = TRUE)
+corrplot(cor(factors, pcaComps$x))
+print(cor(factors, pcaComps$x[,1:3]))
+
+faComps = fa(r = vars, nfactors = 3, rotate = "varimax")
+corrplot(cor(factors, faComps$scores))
+print(cor(factors, faComps$scores))
+
+
+###Part 3:
+W = .5*factors$X + factors$Y
+cor(W, factors$Y) #.9053488
+
+noisyX = noisyIndicators(factors$X,10,.8)
+noisyW = noisyIndicators(W,4,.8)
+
+noisiesXW = cbind(noisyX, noisyW)
+corrplot(cor(noisiesXW))
+
+faVariComps = fa(r = noisiesXW, nfactors = 2, rotate = "varimax")
+faObliComps = fa(r = noisiesXW, nfactors = 2, rotate = "oblimin")
+
+trueFactorXW = cbind(factors$X, W)
+corrplot(cor(noisiesXW, faVariComps$scores))
+corrplot(cor(noisiesXW, faObliComps$scores))
+corrplot(cor(trueFactorXW, faVariComps$scores))
+corrplot(cor(trueFactorXW, faObliComps$scores))
+
+corrplot(faVariComps$loadings, is.corr = FALSE)
+corrplot(faObliComps$loadings, is.corr = FALSE)
+
+speedDatingData = read.csv("speedDating.csv")
+df = speedDatingData
+
+for(i in 1:4){
+  faComps = fa(r = df, nfactors = i, rotate = "varimax", title = "Varimax")
+  corrplot(faComps$loadings, is.corr = FALSE)
+  faComps = fa(r = df, nfactors = i, rotate = "oblimin", title = "Oblimin")
+  corrplot(faComps$loadings, is.corr = FALSE)
+}
+library("readr")
+Big5Data = read_tsv("data.csv")
+
+df = Big5Data
+questionsDF = df[8:57]
+pcaComps = prcomp(questionsDF,scale. = TRUE)
+corrplot(cor(questionsDF,pcaComps$x))
+faComps = fa(r = questionsDF, nfactors = 5, rotate = "varimax")
+corrplot(cor(questionsDF,faComps$scores))
+
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
